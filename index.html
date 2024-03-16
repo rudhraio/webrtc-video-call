@@ -4,153 +4,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC - Video Call</title>
+    <title>Video Call | One to One</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <div class="m-6 px-32 py-12">
-        <div class="flex flex-row gap-6 justify-around">
-            <div class="basis-1/3 w-full h-64 bg-gray-300">
-                <video class="w-full h-full" id="local-video" autoplay playsinline></video>
+<body class="bg-gray-200">
+
+    <!-- Home Screen Html -->
+    <section id="home-section" class="w-full h-full fixed flex items-center hidden">
+        <div class="flex justify-around items-center w-full">
+            <div class="mx-6">
+                <h2 class="text-4xl">
+                    Welcome to video call
+                </h2>
+                <p class="mt-2">
+                    One to One video call made easy and secure
+                </p>
+                <div class="flex gap-y-3 mt-12 w-[30rem] sm:w-[36rem] gap-x-2 bg-white p-1.5 rounded">
+                    <input type="text" class="text-xl py-2 px-3 basis-2/3" placeholder="Enter room name">
+                    <button class="bg-black  text-white px-6 basis-1/3 font-semibold rounded ">
+                        Join Room
+                    </button>
+                </div>
             </div>
-            <div class="basis-1/3 w-full h-64 bg-gray-300">
-                <video class="w-full h-full" id="remote-video" autoplay playsinline></video>
+            <div class=" lg:flex hidden">
+                <div class="w-[32rem] h-[32rem] bg-gray-400"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="profile-section" class="w-full h-screen flex lg:items-center items-start m-6">
+
+        <div class="flex lg:flex-row flex-col justify-around gap-y-12 items-center w-full">
+            <div>
+                <div class="lg:w-[42rem] w-[32rem] h-[24rem] bg-gray-400 rounded relative">
+                    <div class="absolute w-full  bottom-0 ">
+                        <div class="flex justify-center my-6 gap-x-12">
+                            <div class="w-14 h-14 rounded-full bg-red-500 cursor-pointer"></div>
+                            <div class="w-14 h-14 rounded-full bg-red-500 cursor-pointer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="flex flex-col gap-y-2">
+                    <label for="" class="font-medium">Enter your name</label>
+                    <input type="text" class="bg-white w-[28rem] p-2 text-lg rounded" placeholder="Your name">
+                </div>
+                <div class="flex flex-row  gap-x-6 mt-6">
+                    <div
+                        class="w-24 h-12 bg-gray-500 flex justify-center text-white items-center rounded-full cursor-pointer">
+                        Audio | >
+                    </div>
+                    <div
+                        class="w-24 h-12 bg-gray-500 flex justify-center text-white items-center rounded-full cursor-pointer">
+                        Video | >
+                    </div>
+                    <div
+                        class="w-24 h-12 bg-gray-500 flex justify-center text-white items-center rounded-full cursor-pointer">
+                        Speaker | >
+                    </div>
+                </div>
+                <div class="w-full mt-12">
+                    <button class="w-full bg-black text-white p-2 rounded">Enter Room</button>
+                </div>
             </div>
         </div>
 
-        <div class="mt-6">
-            <div>
-                <div class="flex flex-row justify-between items-center my-2">
-                    <p class="text-3xl">
-                        Step 1: Create a Offer or Paste the Offer
-                    </p>
-                    <button class="py-3 px-6 bg-black text-white mt-3" id="create-offer">Create Offer</button>
-                </div>
-                <textarea name="" id="offer-sdp" rows="5" class="w-full border"></textarea>
-            </div>
-            <div>
-                <div class="flex flex-row justify-between items-center my-2">
-                    <p class="text-3xl">
-                        Step 2: Create answer for Offer
-                    </p>
-                    <button class="py-3 px-6 bg-black text-white mt-3" id="create-answer">Create Answer</button>
-                </div>
-                <textarea name="" id="answer-sdp" rows="5" class="w-full border"></textarea>
-            </div>
-            <div>
-
-                <button class="py-3 px-6 bg-black text-white mt-3" id="add-answer">Add Answer</button>
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-
-        const localVideoEl = document.querySelector('#local-video');
-        const remoteVideoEl = document.querySelector('#remote-video');
-
-        let peerConnection;
-
-        let peerConfiguration = {
-            iceServers: [
-                {
-                    urls: [
-                        'stun:stun.l.google.com:19302',
-                        'stun:stun1.l.google.com:19302'
-                    ]
-                }
-            ]
-        }
+    </section>
 
 
-
-
-        const init = async () => {
-            await fetchUserMedia();
-
-            peerConnection = await new RTCPeerConnection(peerConfiguration);
-
-            localStream.getTracks().forEach((track) => {
-                peerConnection.addTrack(track, localStream);
-            });
-
-            remoteStream = new MediaStream()
-            remoteVideoEl.srcObject = remoteStream;
-
-            peerConnection.ontrack = (event) => {
-                event.streams[0].getTracks().forEach((track) => {
-                    remoteStream.addTrack(track);
-                });
-            };
-        }
-
-        const fetchUserMedia = () => {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
-                        audio: true,
-                    });
-                    localVideoEl.srcObject = stream;
-                    localStream = stream;
-                    resolve();
-                } catch (err) {
-                    console.log(err);
-                    reject()
-                }
-            })
-        }
-
-        const createOffer = async () => {
-
-            peerConnection.onicecandidate = async (event) => {
-                //Event that fires off when a new offer ICE candidate is created
-                if (event.candidate) {
-                    console.log(peerConnection.localDescription);
-                    document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
-                }
-            };
-
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-        }
-
-        let createAnswer = async () => {
-
-            let offer = JSON.parse(document.getElementById('offer-sdp').value)
-
-            peerConnection.onicecandidate = async (event) => {
-                //Event that fires off when a new answer ICE candidate is created
-                if (event.candidate) {
-                    console.log('Adding answer candidate...:', event.candidate)
-                    document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription)
-                }
-            };
-
-            await peerConnection.setRemoteDescription(offer);
-
-            let answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-        }
-
-        let addAnswer = async () => {
-            console.log('Add answer triggerd')
-            let answer = JSON.parse(document.getElementById('answer-sdp').value)
-            console.log('answer:', answer)
-            if (!peerConnection.currentRemoteDescription) {
-                peerConnection.setRemoteDescription(answer);
-            }
-        }
-
-        init();
-
-        document.getElementById('create-offer').addEventListener('click', createOffer)
-        document.getElementById('create-answer').addEventListener('click', createAnswer)
-        document.getElementById('add-answer').addEventListener('click', addAnswer)
-    </script>
 </body>
 
 </html>
